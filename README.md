@@ -2,6 +2,7 @@
 Consumir web service, listar contactos y crear 10 contactos
 # Requisitos
 Visual Studio 2017
+Newtonsoft.Json
 # Ejecucion
 Program.cs
 # Colaborador
