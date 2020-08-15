@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using Newtonsoft.Json;
+using RestSharp;
 
 namespace ht2_parte1
 {
@@ -16,11 +17,11 @@ namespace ht2_parte1
             //Creacion de token
             string url = "https://api.softwareavanzado.world/index.php?option=token&api=oauth2";
             string result = GetPost(url);
-            Root objeto = JsonConvert.DeserializeObject<Root>(result);
-
+            RootToken objeto = JsonConvert.DeserializeObject<RootToken>(result);
+            string token = "Bearer " + objeto.access_token;
             //Menu
             string opcion = "";
-            while (false)
+            while (true)
             {
                 Console.Clear();
                 Console.WriteLine("Seleccione una opcion:");
@@ -30,8 +31,12 @@ namespace ht2_parte1
                 opcion = Console.ReadLine();
                 if (opcion.Equals("1"))
                 {
-                    Program read = new Program();
-                    read.getContacto();
+                    string respuesta = getContacto(token);
+                    RootContacto contacto = JsonConvert.DeserializeObject<RootContacto>(respuesta);
+                    foreach (var item in contacto._embedded.item)
+                    {
+                        Console.WriteLine(item.name+"");
+                    }
                 }
                 else if (opcion.Equals("2"))
                 {
@@ -54,6 +59,7 @@ namespace ht2_parte1
 
         public static string GetPost(string url)
         {
+            //Clase getToken para serializar el JSON a enviar 
             getToken oP = new getToken() { grant_type = "client_credentials", client_id = "sa", client_secret = "fb5089840031449f1a4bf2c91c2bd2261d5b2f122bd8754ffe23be17b107b8eb103b441de3771745" };
             string result = "";
             WebRequest oRequest = WebRequest.Create(url);
@@ -76,25 +82,24 @@ namespace ht2_parte1
             {
                 result = oSR.ReadToEnd().Trim();
             }
-
+            Console.WriteLine(result);
+            Console.ReadKey();
             return result;
         }
 
-        public void getContacto()
+        public static string getContacto(string token)
         {
-            //Instanciar web service
-            ServiceReference1.administratorcontact100Client WS = new ServiceReference1.administratorcontact100Client();
-
-            //Leer contactos
-            var Contactos = WS.readList(0, 0, null, null, null, null, null);
-            int i = 0;
-            Console.WriteLine("Tamanio:" + Contactos.Length);
-            while (i < Contactos.Length)
-            {
-                Console.WriteLine("Contacto: " + Contactos[i].name);
-                i++;
-            }
-            Console.WriteLine("\n");
+            string json = "";
+            var client = new RestClient("https://api.softwareavanzado.world/index.php?webserviceClient=administrator&webserviceVersion=1.0.0&option=contact&api=hal");
+            client.Timeout = -1;
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+            request.AddHeader("Authorization", token);
+            request.AddHeader("Cookie", "__cfduid=d86e5da17dc8ca04a411b9ba10a569cf21596342219; 1bb11e6f2dacb1c375d150942d6da0cd=mav28gon7b7h182fcm44lcbkum");
+            request.AddParameter("application/x-www-form-urlencoded", "", ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+            json = response.Content + "";
+            return json;
         }
 
         public void setContacto()
@@ -116,6 +121,7 @@ namespace ht2_parte1
             public string client_secret { get; set; }
         }
 
+        //Clases para obtener token oAuth2
         public class Profile
         {
             public int id { get; set; }
@@ -127,7 +133,7 @@ namespace ht2_parte1
             public List<object> authorisedGroups { get; set; }
         }
 
-        public class Root
+        public class RootToken
         {
             public string access_token { get; set; }
             public string expires_in { get; set; }
@@ -137,6 +143,36 @@ namespace ht2_parte1
             public string created { get; set; }
             public Profile profile { get; set; }
         }
+
+        //Clases para obtener contactos
+
+        public class Item
+        {
+            //public Links2 _links { get; set; }
+            public int id { get; set; }
+            public string name { get; set; }
+            public int ordering { get; set; }
+            public int access { get; set; }
+            public string language { get; set; }
+            public int featured { get; set; }
+        }
+
+        public class Embedded
+        {
+            public List<Item> item { get; set; }
+        }
+
+        public class RootContacto
+        {
+            //public Links _links { get; set; }
+            public int page { get; set; }
+            public int pageLimit { get; set; }
+            public int limitstart { get; set; }
+            public int totalItems { get; set; }
+            public int totalPages { get; set; }
+            public Embedded _embedded { get; set; }
+        }
+
 
     }
 }
