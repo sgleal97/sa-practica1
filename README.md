@@ -1,8 +1,14 @@
-# sa-practica1
+# sa-practica2
 Consumir web service, listar contactos y crear 10 contactos
+Parte 1:
+1. Crear token con oAuth2
+2. Autentificarse por metodo Bearer token
+Parte 2:
+1. Autentificarse por metodo Basic
 # Requisitos
 Visual Studio 2017
 Newtonsoft.Json
+RestSharp
 # Ejecucion
 Program.cs
 # Colaborador
