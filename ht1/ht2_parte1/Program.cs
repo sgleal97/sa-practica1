@@ -32,16 +32,23 @@ namespace ht2_parte1
                 if (opcion.Equals("1"))
                 {
                     string respuesta = getContacto(token);
-                    RootContacto contacto = JsonConvert.DeserializeObject<RootContacto>(respuesta);
-                    foreach (var item in contacto._embedded.item)
+                    if(respuesta.Equals(""))
                     {
-                        Console.WriteLine(item.name+"");
+                        Console.WriteLine("Este contacto no existe");
                     }
+                    else
+                    {
+                        RootContacto contacto = JsonConvert.DeserializeObject<RootContacto>(respuesta);
+                        foreach (var item in contacto._embedded.item)
+                        {
+                            Console.WriteLine(item.name + "");
+                        }
+                    }
+                    
                 }
                 else if (opcion.Equals("2"))
                 {
-                    Program write = new Program();
-                    write.setContacto();
+                    setContacto(token);
                 }
                 else if (opcion.Equals("3"))
                 {
@@ -89,6 +96,11 @@ namespace ht2_parte1
 
         public static string getContacto(string token)
         {
+            //Ingresar contacto
+            string contacto = "";
+            Console.WriteLine("Ingrese el nombre del contacto: ");
+            contacto = Console.ReadLine();
+
             string json = "";
             var client = new RestClient("https://api.softwareavanzado.world/index.php?webserviceClient=administrator&webserviceVersion=1.0.0&option=contact&api=hal");
             client.Timeout = -1;
@@ -96,22 +108,28 @@ namespace ht2_parte1
             request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
             request.AddHeader("Authorization", token);
             request.AddHeader("Cookie", "__cfduid=d86e5da17dc8ca04a411b9ba10a569cf21596342219; 1bb11e6f2dacb1c375d150942d6da0cd=mav28gon7b7h182fcm44lcbkum");
-            request.AddParameter("application/x-www-form-urlencoded", "", ParameterType.RequestBody);
+            //request.AddParameter("application/x-www-form-urlencoded", "", ParameterType.RequestBody);
+            request.AddParameter("filter[search]", contacto);
             IRestResponse response = client.Execute(request);
             json = response.Content + "";
             return json;
         }
 
-        public void setContacto()
+        public static void setContacto(string token)
         {
-            //Instanciar web service
-            ServiceReference1.administratorcontact100Client WS = new ServiceReference1.administratorcontact100Client();
             //Escribir un contacto
             string nombre = "";
             Console.WriteLine("Ingrese un contacto: ");
             nombre = Console.ReadLine();
+            var client = new RestClient("https://api.softwareavanzado.world/index.php?webserviceClient=administrator&webserviceVersion=1.0.0&option=contact&api=hal");
+            client.Timeout = -1;
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("Authorization", token);
+            request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
+            request.AddHeader("Cookie", "__cfduid=d86e5da17dc8ca04a411b9ba10a569cf21596342219; 1bb11e6f2dacb1c375d150942d6da0cd=l9mqb25e1vtsb6jmro5b3cjiee");
+            request.AddParameter("name", nombre);
+            IRestResponse response = client.Execute(request);
             Console.WriteLine("Nombre de contacto: " + nombre);
-            //WS.create(nombre, 0, null, 0);
         }
 
         public class getToken
